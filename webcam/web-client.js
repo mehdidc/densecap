@@ -118,11 +118,12 @@ $(function() {
         // Now draw the text
         ctx.save();
         ctx.font = '18px sans-serif';
+        ctx.fillStyle = 'white';
         ctx.textBaseline = 'top';
 
         var text_width = ctx.measureText(data.captions[i]).width;
         ctx.save();
-        ctx.globalAlpha = 0.5;
+        ctx.globalAlpha = 0.8;
         ctx.fillStyle = WAD_COLORS[i % WAD_COLORS.length];
         ctx.fillRect(x, y, text_width, 20);
         ctx.restore();
