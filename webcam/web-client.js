@@ -267,7 +267,7 @@ $(function() {
   
   var constraints = {
     audio: false,
-    video: true,
+    video: {width: 400, height: 400},
   };
   navigator.getUserMedia(constraints, success, errorCallback);
 
