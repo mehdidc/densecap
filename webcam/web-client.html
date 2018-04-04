@@ -4,10 +4,24 @@
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+ 
     <style>
       #video, #img-canvas {
         display: none;
       }
+      .desc{
+        font-size : 32px;
+      }
+      html,body{
+        height:100%;
+        margin:0;
+        padding:0;
+        border:0;
+    }
+    div{
+        margin:0;
+        border:0;
+    }
     </style>
   </head>
   <body>
@@ -22,12 +36,20 @@
           <button disabled class='btn btn-lg btn-primary' id='btn-bigger'>Bigger</button>
           <button disabled class='btn btn-lg btn-primary' id='btn-smaller'>Smaller</button>
         </div>
-        <div>
-          <video id='video'></video>
-          <canvas id='img-canvas'></canvas>
-          <canvas id='canvas' width="1200" height="1000"></canvas>
-        </div>
-      </div>
+       <table>
+        <tr>
+            <td>
+                <div>
+                  <video id='video'></video>
+                  <canvas id='img-canvas'></canvas>
+                  <canvas id='canvas' width="800" height="800"></canvas>
+                </div>
+              </div>
+
+            </td>
+            <td><div id='annotations'></div></td>
+        </tr>
+       </table>
     </div>
     <script src='web-client.js'></script>
   </body>

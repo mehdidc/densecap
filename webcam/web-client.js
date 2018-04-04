@@ -1,10 +1,17 @@
+function escapeHtml(string) {
+  return String(string).replace(/[&<>"'\/]/g, function (s) {
+    return entityMap[s];
+  });
+}
+
+
 $(function() {
 
   var SERVER_URL = null;
   var video_active = false;
   var demo_running = false;
 
-  var NUM_TO_SHOW = 20;
+  var NUM_TO_SHOW = 10;
 
   var IMAGE_DISPLAY_WIDTH = 800;
   var BOX_LINE_WIDTH = 6;
@@ -69,7 +76,7 @@ $(function() {
       var ori_height = img.height;
       var ori_width = img.width;
 
-      // First draw a white rectangle over everything
+      // First draw a white retangle over everything
       ctx.save();
       ctx.fillStyle = 'rgb(255, 255, 255)';
       ctx.rect(0, 0, canvas.width, canvas.height);
@@ -77,7 +84,6 @@ $(function() {
       ctx.restore();
 
       ctx.drawImage(img, pos.x, pos.y, pos.w, pos.h);
-       
       for (var i = 0; i < NUM_TO_SHOW && i < data.boxes.length; i++) {
         var box = data.boxes[i];
         var x = box[0], y = box[1],
@@ -119,22 +125,88 @@ $(function() {
     }
     img.src = image_url;
   }
+    // render just the annotations, leave the image untouched and loaded
+    function renderAnnotations(result) {
+      var delt = $('#annotations'); // render into g element of svg
+      delt.html(''); // flush contents of annotations <g> element
+      var nshow = NUM_TO_SHOW;
+      for (var k = 0; k < nshow; k++) {
+        var det_box = result.boxes[k];
+        var caption = result.captions[k];
+        var color = WAD_COLORS[k % WAD_COLORS.length];
+        delt.append('<p class="desc" style="color:'+color+'">' + escapeHtml(caption) + '.' + '</span>');
+      }
+    }
+
+    // bind keys to controls
+    document.onkeydown = function(e) {
+      // d=68, a=65, w=87, s=83, t=84
+      if (e.keyCode == 68) updateImg(1);
+      if (e.keyCode == 65) updateImg(-1);
+      if (e.keyCode == 83) updateCounter('detections_to_show', -1);
+      if (e.keyCode == 87) updateCounter('detections_to_show', 1);
+      if (e.keyCode == 84) toggleFlag('captions_inline');
+      if (e.keyCode == 82) jumpRandom();
+    };
+
+    // "int main" function here
+    function intmain() {
+      loadData();
+    }
+
+    function jumpRandom() {
+      current_id = Math.floor(Math.random()*(input_struct.results.length-1));
+      renderImage();
+    }
 
   // Grab an image from the webcam, send it to the server, and draw the results.
-  function captureImage() {
+  var SIZE_W = 800;
+  var SIZE_H = 800;
+  function capture_image(){
+        // Make sure that the video is active.
+        if (!video_active) return;
+        // By this point the webcam is streaming to the video object.
+        // To get a frame, we draw the video to a canvas and then pull a data URL
+        // from the canvas that has encoded pixel data.
+        var video = document.getElementById('video');
+        var img_canvas = document.getElementById('img-canvas');
+
+        img_canvas.width = video.videoWidth;
+        img_canvas.height = video.videoHeight;
+	//img_canvas.width = SIZE_W;
+        //img_canvas.height = SIZE_H;
+
+        var ctx = img_canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+        //ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, SIZE_W, SIZE_H);
+        //update_annotations();
+        if(last_annotations != null){
+            img_url = img_canvas.toDataURL();
+            draw_image(img_url, last_annotations);
+            renderAnnotations(last_annotations);
+        }
+  }
+  var last_annotations = null;
+  function update_annotations() {
     // Make sure that the video is active.
     if (!video_active) return;
-
     // By this point the webcam is streaming to the video object.
     // To get a frame, we draw the video to a canvas and then pull a data URL
     // from the canvas that has encoded pixel data.
     var video = document.getElementById('video');
     var img_canvas = document.getElementById('img-canvas');
+    
     img_canvas.width = video.videoWidth;
     img_canvas.height = video.videoHeight;
+    //img_canvas.width = SIZE_W;
+    //img_canvas.height = SIZE_H;
+
+
+
     var ctx = img_canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-
+    //ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, SIZE_W, SIZE_H);
+ 
     // TODO: jpeg might not be supported on all browsers;
     // detect this somehow and fall back to png
     var img_url = img_canvas.toDataURL('image/jpeg');
@@ -146,12 +218,15 @@ $(function() {
     request.onload = function(e) {
       // Once we have the response, render it and loop.
       var annotations = JSON.parse(request.responseText);
-      draw_image(img_url, annotations);
-      if (demo_running) captureImage();
+      last_annotations = annotations;
+      //draw_image(img_url, annotations);
+      if (demo_running) {
+        //captureImage();
+      }
     }
     request.send('img=' + img_url);
   }
-
+  
   function success(stream) {
     var video = document.getElementById('video');
 
@@ -193,7 +268,9 @@ $(function() {
     SERVER_URL = get_url_param('server_url');
     console.log(SERVER_URL);
     demo_running = true;
-    captureImage();
+    //captureImage();
+    setInterval(capture_image, 100);
+    setInterval(update_annotations, 2000); 
   });
   $('#btn-stop').click(function() { demo_running = false; });
   $('#btn-less').click(function() { NUM_TO_SHOW--; });
