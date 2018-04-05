@@ -47,6 +47,11 @@ $(function() {
     "rgb(0, 0, 0)",       // Black
   ];
 
+function capitalize(s)
+{
+    return s[0].toUpperCase() + s.slice(1);
+}
+
   // Overall, the client-side program flow works like this:
   // First, we request a meadia stream object to access the webcam; once we have
   // it we bind it to a hidden <video> element and play the video. Now we can
@@ -143,7 +148,7 @@ $(function() {
         var det_box = result.boxes[k];
         var caption = result.captions[k];
         var color = WAD_COLORS[k % WAD_COLORS.length];
-        delt.append('<p class="desc" style="color:'+color+'">' + escapeHtml(caption) + '.' + '</span>');
+        delt.append('<span class="desc" style="color:'+color+'">' + capitalize(escapeHtml(caption)) + '.' + '</span>');
       }
     }
 
